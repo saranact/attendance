@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <div class="dashboard">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <span>🏠</span>
+                <span>Home</span>
+            </div>
+            <div class="navbar-controls">
+                <button class="theme-toggle" id="themeToggleBtn">🌙</button>
+                <button class="hamburger" id="hamburgerBtn">☰</button>
+            </div>
+        </nav>
+        
+        <div class="main-content">
+            <aside class="sidebar" id="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="#" onclick="showSection('dashboard')">Dashboard</a> 
+                    <a href="#" onclick="showSection('faculty')">Faculty</a>
+                    <a href="#" onclick="showSection('reports')">Reports</a>
+                    <a href="#" onclick="showSection('settings')">Settings</a>
+                    <a href="#" onclick="logout()">Log Out</a> </nav>
+            </aside>
+            
+            <main class="content-area">
+                <div id="dashboard-section" class="content-section">
+                    <div class="dashboard-header">
+                        <h1>Dashboard</h1>
+                        <p>Department (ECE) - Electronics & Communication Engineering</p>
+                    </div>
+
+                    <div class="date-selection" style="text-align: right; margin-bottom: 20px;">
+                        <label for="attendanceDate" style="font-weight:600; margin-right:10px;">Select Date:</label>
+                        <input type="date" id="attendanceDate" name="attendanceDate" style="padding:8px 12px; border:1px solid #ccc; border-radius:8px;">
+                    </div> 
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">59</div>
+                            <div class="stat-label">Total Students</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="overallAttendanceValue" class="stat-value">--%</div>
+                            <div class="stat-label">Overall Attendance</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">7</div>
+                            <div class="stat-label">Active Subjects</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="defaultersValue" class="stat-value">--</div>
+                            <div class="stat-label">Defaulters</div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Subject-wise Attendance (%)</h3>
+                            </div>
+                            <canvas id="attendanceChart"></canvas>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Overall Day Attendance</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="dailyAttendancePieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="faculty-section" class="content-section" style="display: none;">
+                    <div class="dashboard-header">
+                        <h1>Faculty & Subject Details</h1>
+                        <p>List of all subjects and their assigned faculty members.</p>
+                    </div>
+                    <div class="card">
+                         <div class="card-header">
+                            <h3>Subject Allocation</h3>
+                         </div>
+                         <table id="faculty-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject Code</th>
+                                    <th>Subject Name</th>
+                                    <th>Faculty Name</th>
+                                </tr>
+                            </thead>
+                            <tbody id="faculty-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="overlay" class="overlay"></div>
+    
+    <script type="module" src="dashboard.js" defer></script>
+</body>
+</html>
