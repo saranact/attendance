@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="splashScreen" class="splash-screen">
+        <div class="loader"></div>
+        <h1 class="splash-title">Attendance Management System</h1>
+    </div>
+
+    <div id="loginPage" class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Welcome Back</h1>
+                <p>Sign in to view attendance dashboard</p>
+            </div>
+            
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="e.g., admin">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="e.g., 1234">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Login</button>
+                <button type="button" id="forgotPasswordBtn" class="btn btn-secondary">Forgot Password</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="changePasswordPage" class="login-container" style="display: none;">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Change Password</h1>
+                <p>Update your account password</p>
+            </div>
+            
+            <div id="changeErrorMessage" class="error-message"></div>
+            <div id="changeSuccessMessage" class="success-message"></div>
+            
+            <form id="changePasswordForm">
+                <div class="form-group">
+                    <label for="oldPassword">Old Password</label>
+                    <input type="password" id="oldPassword" name="oldPassword" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" name="newPassword" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Re-enter New Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Update Password</button>
+                <button type="button" id="backToLoginBtn" class="btn btn-secondary">Back to Login</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="dashboardPage" class="dashboard">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <span>🏠</span>
+                <span>Home</span>
+            </div>
+            <button class="hamburger" id="hamburgerBtn">☰</button>
+        </nav>
+        
+        <div class="main-content">
+            <aside class="sidebar" id="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="#" onclick="showSection('students')">Students</a>
+                    <a href="#" onclick="showSection('section')">Section</a>
+                    <a href="#" onclick="showSection('faculty')">Faculty</a>
+                    <a href="#" onclick="showSection('graph')">Graph</a>
+                    <a href="#" onclick="showSection('reports')">Reports</a>
+                    <a href="#" onclick="showSection('settings')">Settings</a>
+                    <a href="#" onclick="logout()">Log Out</a>
+                </nav>
+            </aside>
+            
+            <main class="content-area">
+                <div class="dashboard-header">
+                    <h1>Dashboard</h1>
+                    <p>Department (ECE) - Electronics & Communication Engineering</p>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">245</div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">92%</div>
+                        <div class="stat-label">Overall Attendance</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">8</div>
+                        <div class="stat-label">Active Subjects</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">18</div>
+                        <div class="stat-label">Defaulters</div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Year-wise Attendance Overview</h3>
+                        </div>
+                        <div class="chart-placeholder">
+                            📊 Interactive Bar Chart<br>
+                            Years (1st → 4th) vs Attendance %
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Year-wise Details</h3>
+                        </div>
+                        <div class="dropdown">
+                            <select id="yearSelect">
+                                <option value="1st">1st Year</option>
+                                <option value="2nd">2nd Year</option>
+                                <option value="3rd">3rd Year</option>
+                                <option value="4th">4th Year</option>
+                            </select>
+                        </div>
+                        <div class="stats-grid-inner">
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value">65</div>
+                                <div class="mini-stat-label">Total Students</div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value">59</div>
+                                <div class="mini-stat-label">Students Present</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </main>
+        </div>
+    </div>
+    
+    <div id="overlay" class="overlay"></div>
+    
+    <script src="script.js" defer></script>
+</body>
+</html>
