@@ -25,10 +25,11 @@
             <aside class="sidebar" id="sidebar">
                 <nav class="sidebar-nav">
                     <a href="#" onclick="showSection('dashboard')">Dashboard</a> 
+                    <a href="#" onclick="showSection('students')">Students</a>
                     <a href="#" onclick="showSection('faculty')">Faculty</a>
                     <a href="#" onclick="showSection('reports')">Reports</a>
-                    <a href="#" onclick="showSection('settings')">Settings</a>
-                    <a href="#" onclick="logout()">Log Out</a> </nav>
+                    <a href="#" onclick="logout()">Log Out</a>
+                </nav>
             </aside>
             
             <main class="content-area">
@@ -80,6 +81,32 @@
                         </div>
                     </div>
                 </div>
+
+                <div id="students-section" class="content-section" style="display: none;">
+                    <div class="dashboard-header">
+                        <h1>Student Details</h1>
+                        <p>List of all students in the department.</p>
+                    </div>
+                    <div class="card">
+                         <div class="card-header">
+                            <h3>Student List</h3>
+                         </div>
+                         <table id="students-table">
+                            <thead>
+                                <tr>
+                                    <th>Roll Number</th>
+                                    <th>Student Name</th>
+                                    <th>Department</th>
+                                    <th>Section</th>
+                                    <th>Year</th>
+                                </tr>
+                            </thead>
+                            <tbody id="students-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
 
                 <div id="faculty-section" class="content-section" style="display: none;">
                     <div class="dashboard-header">

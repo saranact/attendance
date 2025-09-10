@@ -17,11 +17,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Variables to hold chart instances so they can be destroyed before redrawing
+// Variables to hold chart instances
 let attendanceBarChart = null;
 let attendancePieChart = null;
-// Flag to prevent re-fetching data from Firestore unnecessarily
+
+// Flags to prevent re-fetching data from Firestore unnecessarily
 let facultyDataLoaded = false;
+let studentsDataLoaded = false;
+
 
 /**
  * Fetches subject-wise attendance for a given date and renders a bar chart.
@@ -56,7 +59,6 @@ async function loadAttendance(dateString) {
             attendanceBarChart.destroy();
         }
 
-        // Define chart colors based on the current theme
         const isDarkMode = document.body.classList.contains('dark-theme');
         const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
         const textColor = isDarkMode ? '#e0e0e0' : '#333';
@@ -83,10 +85,7 @@ async function loadAttendance(dateString) {
                     y: {
                         beginAtZero: true,
                         max: 100,
-                        ticks: {
-                            color: textColor,
-                            callback: value => value + "%"
-                        },
+                        ticks: { color: textColor, callback: value => value + "%" },
                         grid: { color: gridColor }
                     },
                     x: {
@@ -98,8 +97,7 @@ async function loadAttendance(dateString) {
         });
     } catch (error) {
         console.error("Error loading bar chart data:", error);
-        const chartArea = document.getElementById("attendanceChart").parentElement;
-        chartArea.innerHTML = "<p style='color: red; text-align: center;'>Could not load chart data.</p>";
+        document.getElementById("attendanceChart").parentElement.innerHTML = "<p style='color: red; text-align: center;'>Could not load chart data.</p>";
     }
 }
 
@@ -110,27 +108,17 @@ async function loadAttendance(dateString) {
 async function loadDailyAttendancePieChart(dateString) {
     try {
         const snapshot = await getDocs(collection(db, `attendance/${dateString}/students`));
-        
         const totalStudents = snapshot.size;
         let presentStudentsCount = 0;
 
         snapshot.docs.forEach(doc => {
             const studentData = doc.data();
-            let isPresentInAnySubject = false;
-            for (const subject in studentData) {
-                if (typeof studentData[subject] === 'string' && studentData[subject].startsWith("Present")) {
-                    isPresentInAnySubject = true;
-                    break;
-                }
-            }
-            if (isPresentInAnySubject) {
+            if (Object.values(studentData).some(status => typeof status === 'string' && status.startsWith("Present"))) {
                 presentStudentsCount++;
             }
         });
 
         const absentStudentsCount = totalStudents - presentStudentsCount;
-        
-        // --- Update Stat Cards ---
         const attendancePercentage = totalStudents > 0 ? Math.round((presentStudentsCount / totalStudents) * 100) : 0;
         document.getElementById('overallAttendanceValue').textContent = `${attendancePercentage}%`;
         document.getElementById('defaultersValue').textContent = absentStudentsCount;
@@ -158,57 +146,90 @@ async function loadDailyAttendancePieChart(dateString) {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: `Total Students: ${totalStudents}`,
-                        color: textColor
-                    },
-                    legend: {
-                        labels: { color: textColor }
-                    }
+                    title: { display: true, text: `Total Students: ${totalStudents}`, color: textColor },
+                    legend: { labels: { color: textColor } }
                 }
             }
         });
-
     } catch (error) {
         console.error("Error loading pie chart data:", error);
         document.getElementById('overallAttendanceValue').textContent = 'Error';
         document.getElementById('defaultersValue').textContent = 'Error';
-        const pieChartArea = document.getElementById("dailyAttendancePieChart").parentElement;
-        pieChartArea.innerHTML = "<p style='color: red; text-align: center;'>Could not load pie chart data.</p>";
+        document.getElementById("dailyAttendancePieChart").parentElement.innerHTML = "<p style='color: red; text-align: center;'>Could not load pie chart data.</p>";
     }
 }
 
 /**
- * NEW FUNCTION: Fetches faculty and subject details from Firestore and populates the table.
+ * Fetches faculty and subject details from Firestore and populates the table.
  */
 async function loadAndDisplayFaculty() {
     const tableBody = document.getElementById('faculty-table-body');
     tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading faculty data...</td></tr>';
-
     try {
         const querySnapshot = await getDocs(collection(db, "faculty_sub_details"));
         let tableHTML = '';
-
         if (querySnapshot.empty) {
             tableHTML = '<tr><td colspan="3" style="text-align:center;">No faculty data found.</td></tr>';
         } else {
             querySnapshot.forEach(doc => {
                 const data = doc.data();
+                tableHTML += `<tr><td>${data.subject_code || 'N/A'}</td><td>${data.subject_name || 'N/A'}</td><td>${data.faculty_name || 'N/A'}</td></tr>`;
+            });
+        }
+        tableBody.innerHTML = tableHTML;
+        facultyDataLoaded = true;
+    } catch (error) {
+        console.error("Error fetching faculty data:", error);
+        tableBody.innerHTML = '<tr><td colspan="3" style="color:red; text-align:center;">Failed to load data.</td></tr>';
+    }
+}
+
+/**
+ * UPDATED FUNCTION: Fetches and sorts student details from Firestore.
+ * - Assumes the Roll Number is the Document ID.
+ * - Checks for 'department' or 'dept' as the field name.
+ */
+async function loadAndDisplayStudents() {
+    const tableBody = document.getElementById('students-table-body');
+    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading student data...</td></tr>';
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "students"));
+        let tableHTML = '';
+
+        if (querySnapshot.empty) {
+            tableHTML = '<tr><td colspan="5" style="text-align:center;">No student data found.</td></tr>';
+        } else {
+            // ==== CODE UPDATED HERE ====
+            // 1. Create a new array, mapping the document ID to a property (e.g., 'roll_number')
+            const studentList = querySnapshot.docs.map(doc => ({
+                roll_number: doc.id, // Use the document ID as the roll number
+                ...doc.data()        // Include the rest of the data from the document
+            }));
+            
+            // 2. Sort the array by the new 'roll_number' property
+            studentList.sort((a, b) => {
+                return (a.roll_number || "").localeCompare(b.roll_number || "");
+            });
+            
+            // 3. Build the HTML from the sorted list
+            studentList.forEach(data => {
                 tableHTML += `
                     <tr>
-                        <td>${data.subject_code || 'N/A'}</td>
-                        <td>${data.subject_name || 'N/A'}</td>
-                        <td>${data.faculty_name || 'N/A'}</td>
+                        <td>${data.roll_number || 'N/A'}</td>
+                        <td>${data.name || 'N/A'}</td>
+                        <td>${data.department || data.dept || 'N/A'}</td> 
+                        <td>${data.section || 'N/A'}</td>
+                        <td>${data.year || 'N/A'}</td>
                     </tr>
                 `;
             });
         }
         tableBody.innerHTML = tableHTML;
-        facultyDataLoaded = true; // Mark data as loaded
+        studentsDataLoaded = true;
     } catch (error) {
-        console.error("Error fetching faculty data:", error);
-        tableBody.innerHTML = '<tr><td colspan="3" style="color:red; text-align:center;">Failed to load data.</td></tr>';
+        console.error("Error fetching student data:", error);
+        tableBody.innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Failed to load data.</td></tr>';
     }
 }
 
@@ -225,48 +246,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentTheme = localStorage.getItem('theme');
     if (currentTheme === 'dark') {
         document.body.classList.add('dark-theme');
-        themeToggleBtn.textContent = '☀️'; // Sun icon
+        themeToggleBtn.textContent = '☀️';
     }
 
     themeToggleBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark-theme');
-        let theme = 'light';
-        if (document.body.classList.contains('dark-theme')) {
-            theme = 'dark';
-            themeToggleBtn.textContent = '☀️';
-        } else {
-            themeToggleBtn.textContent = '🌙';
-        }
+        let theme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+        themeToggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
         localStorage.setItem('theme', theme);
-        // Re-render charts with updated theme colors
-        const selectedDate = datePicker.value;
-        if (selectedDate) {
-            loadAttendance(selectedDate);
-            loadDailyAttendancePieChart(selectedDate);
+        if (datePicker.value) {
+            loadAttendance(datePicker.value);
+            loadDailyAttendancePieChart(datePicker.value);
         }
     });
 
     // --- Initial Data Load ---
-    const getTodayDateString = () => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
+    const getTodayDateString = () => new Date().toISOString().split('T')[0];
     const todayStr = getTodayDateString();
     datePicker.value = todayStr;
-
-    // Load dashboard data by default
     loadAttendance(todayStr);
     loadDailyAttendancePieChart(todayStr);
 
     datePicker.addEventListener('change', () => {
-        const selectedDate = datePicker.value;
-        if (selectedDate) {
-            loadAttendance(selectedDate);
-            loadDailyAttendancePieChart(selectedDate);
+        if (datePicker.value) {
+            loadAttendance(datePicker.value);
+            loadDailyAttendancePieChart(datePicker.value);
         }
     });
 
@@ -283,27 +287,27 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * UPDATED FUNCTION: Shows the selected content section and hides others.
- * Fetches faculty data when the faculty section is selected for the first time.
+ * Shows the selected content section and hides others.
+ * Fetches data when a section is selected for the first time.
  */
 window.showSection = function(sectionName) {
-    // Hide all content sections
     document.querySelectorAll('.content-section').forEach(section => {
         section.style.display = 'none';
     });
 
-    // Show the requested section
     const activeSection = document.getElementById(sectionName + '-section');
     if (activeSection) {
         activeSection.style.display = 'block';
     } else {
-        // Fallback to dashboard if section not found
         document.getElementById('dashboard-section').style.display = 'block';
     }
 
-    // If the faculty tab is clicked and data hasn't been loaded yet, fetch it
+    // Load data if the section is clicked for the first time
     if (sectionName === 'faculty' && !facultyDataLoaded) {
         loadAndDisplayFaculty();
+    }
+    if (sectionName === 'students' && !studentsDataLoaded) {
+        loadAndDisplayStudents();
     }
     
     // Close the sidebar on mobile after selection
@@ -317,6 +321,5 @@ window.showSection = function(sectionName) {
 
 window.logout = function() {
     console.log('User logged out.');
-    // Example: Redirect to a login page
-    // window.location.href = '/login/login.html';
+    // Example: window.location.href = '/login/login.html';
 }

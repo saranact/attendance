@@ -321,3 +321,66 @@ body {
 body.dark-theme #faculty-table tbody tr:hover {
      background-color: rgba(255,255,255,0.08);
 }
+/* Student Table Styling */
+#students-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#students-table th,
+#students-table td {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+#students-table th {
+    background-color: var(--sidebar-hover-bg-color);
+    color: var(--sidebar-text-color);
+    font-weight: 600;
+}
+
+#students-table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Dark theme adjustments for the students table */
+body.dark-theme #students-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+/* ADD THIS AT THE END OF YOUR CSS FILE */
+
+/* General content section styling */
+.content-section {
+    padding: 10px;
+}
+
+/* Generic Table Styling for all sections */
+.card table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.card table th, 
+.card table td {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.card table th {
+    background-color: var(--sidebar-hover-bg-color);
+    color: var(--sidebar-text-color);
+    font-weight: 600;
+}
+
+.card table tbody tr:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* Dark theme adjustments for the table */
+body.dark-theme .card table tbody tr:hover {
+     background-color: rgba(255,255,255,0.08);
+}
