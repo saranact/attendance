@@ -384,3 +384,25 @@ body.dark-theme #students-table tbody tr:hover {
 body.dark-theme .card table tbody tr:hover {
      background-color: rgba(255,255,255,0.08);
 }
+
+/* ADD THESE STYLES AT THE END OF dashboard.css */
+
+/* Styling for the new grid-based timetable */
+.timetable-grid-table {
+    /* This rule inherits styles from ".card table" so we just add specifics */
+    text-align: center; /* Center the subject codes in the cells */
+    font-size: 14px;
+}
+
+.timetable-grid-table th, 
+.timetable-grid-table td {
+    min-width: 90px; /* Ensures columns have some space */
+    padding: 14px 8px; /* Adjust padding for a tighter grid */
+}
+
+/* Style the first column (the time slots) differently */
+.timetable-grid-table td:first-child {
+    text-align: left; /* Align the time to the left */
+    white-space: nowrap; /* Prevent time from wrapping onto two lines */
+    padding-left: 15px;
+}

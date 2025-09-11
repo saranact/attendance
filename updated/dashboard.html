@@ -24,9 +24,10 @@
         <div class="main-content">
             <aside class="sidebar" id="sidebar">
                 <nav class="sidebar-nav">
-                    <a href="#" onclick="showSection('dashboard')">Dashboard</a> 
+                    <a href="#" onclick="showSection('dashboard')">Dashboard</a>
                     <a href="#" onclick="showSection('students')">Students</a>
                     <a href="#" onclick="showSection('faculty')">Faculty</a>
+                    <a href="#" onclick="showSection('timetables')">Timetables</a>
                     <a href="#" onclick="showSection('reports')">Reports</a>
                     <a href="#" onclick="logout()">Log Out</a>
                 </nav>
@@ -42,7 +43,7 @@
                     <div class="date-selection" style="text-align: right; margin-bottom: 20px;">
                         <label for="attendanceDate" style="font-weight:600; margin-right:10px;">Select Date:</label>
                         <input type="date" id="attendanceDate" name="attendanceDate" style="padding:8px 12px; border:1px solid #ccc; border-radius:8px;">
-                    </div> 
+                    </div>
                     
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -130,7 +131,22 @@
                         </table>
                     </div>
                 </div>
-            </main>
+
+                <div id="timetables-section" class="content-section" style="display: none;">
+                    <div class="dashboard-header">
+                        <h1>Class Timetable</h1>
+                        <p>Weekly schedule for ECA Section 3A.</p>
+                    </div>
+                    <div class="card">
+                         <div class="card-header">
+                            <h3>Weekly Schedule</h3>
+                         </div>
+                         <div id="timetable-container">
+                            <p style="text-align: center; padding: 20px;">Loading timetable...</p>
+                         </div>
+                    </div>
+                </div>
+                </main>
         </div>
     </div>
     

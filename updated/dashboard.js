@@ -24,6 +24,7 @@ let attendancePieChart = null;
 // Flags to prevent re-fetching data from Firestore unnecessarily
 let facultyDataLoaded = false;
 let studentsDataLoaded = false;
+let timetableDataLoaded = false; // <-- NEW FLAG ADDED
 
 
 /**
@@ -185,9 +186,7 @@ async function loadAndDisplayFaculty() {
 }
 
 /**
- * UPDATED FUNCTION: Fetches and sorts student details from Firestore.
- * - Assumes the Roll Number is the Document ID.
- * - Checks for 'department' or 'dept' as the field name.
+ * Fetches and sorts student details from Firestore.
  */
 async function loadAndDisplayStudents() {
     const tableBody = document.getElementById('students-table-body');
@@ -200,25 +199,21 @@ async function loadAndDisplayStudents() {
         if (querySnapshot.empty) {
             tableHTML = '<tr><td colspan="5" style="text-align:center;">No student data found.</td></tr>';
         } else {
-            // ==== CODE UPDATED HERE ====
-            // 1. Create a new array, mapping the document ID to a property (e.g., 'roll_number')
             const studentList = querySnapshot.docs.map(doc => ({
-                roll_number: doc.id, // Use the document ID as the roll number
-                ...doc.data()        // Include the rest of the data from the document
+                roll_number: doc.id,
+                ...doc.data()
             }));
             
-            // 2. Sort the array by the new 'roll_number' property
             studentList.sort((a, b) => {
                 return (a.roll_number || "").localeCompare(b.roll_number || "");
             });
             
-            // 3. Build the HTML from the sorted list
             studentList.forEach(data => {
                 tableHTML += `
                     <tr>
                         <td>${data.roll_number || 'N/A'}</td>
                         <td>${data.name || 'N/A'}</td>
-                        <td>${data.department || data.dept || 'N/A'}</td> 
+                        <td>${data.department || data.dept || 'N/A'}</td>
                         <td>${data.section || 'N/A'}</td>
                         <td>${data.year || 'N/A'}</td>
                     </tr>
@@ -232,6 +227,98 @@ async function loadAndDisplayStudents() {
         tableBody.innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Failed to load data.</td></tr>';
     }
 }
+
+// ====================================================
+// ============ NEW TIMETABLE FUNCTION ADDED ==========
+// ====================================================
+/**
+ * Fetches timetable data from Firestore and renders it as an HTML table.
+ *//**
+ * Fetches timetable data from Firestore and renders it as a grid-style HTML table.
+ *//**
+ * Fetches timetable data from Firestore and renders it as a grid-style HTML table.
+ * VERSION 3: Correctly sorts 12-hour format time in ascending order.
+ */
+async function loadAndDisplayTimetable() {
+    const container = document.getElementById('timetable-container');
+    
+    try {
+        const querySnapshot = await getDocs(collection(db, "ECA_3_A_timetable"));
+
+        if (querySnapshot.empty) {
+            container.innerHTML = "<p style='text-align:center; color:orange;'>No timetable data found.</p>";
+            return;
+        }
+
+        const gridData = {}; 
+        const timeSlots = new Set();
+        const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+        querySnapshot.forEach(doc => {
+            const day = doc.id;
+            const periods = doc.data();
+            Object.values(periods).forEach(period => {
+                const slotKey = `${period.start}-${period.end}`;
+                timeSlots.add(slotKey);
+                if (!gridData[slotKey]) {
+                    gridData[slotKey] = {};
+                }
+                gridData[slotKey][day] = period.subject_code;
+            });
+        });
+        
+        // --- UPDATED SORTING LOGIC ---
+        // This new logic correctly sorts times by converting them to a 24-hour format for comparison.
+        const sortedTimeSlots = Array.from(timeSlots).sort((a, b) => {
+            // Helper function to get a comparable 24-hour value from a time string like "01:25" or "09:20"
+            const getComparableTime = (timeString) => {
+                let [hours, minutes] = timeString.split(':').map(num => parseInt(num, 10));
+                
+                // Heuristic for school timetables: if the hour is before 8 (e.g., 1, 2), it's likely PM.
+                if (hours < 8) {
+                    hours += 12;
+                }
+                
+                // Convert to a single number for easy comparison (e.g., 09:20 -> 920, 13:25 -> 1325)
+                return hours * 100 + minutes;
+            };
+
+            const startTimeA = a.split('-')[0];
+            const startTimeB = b.split('-')[0];
+
+            return getComparableTime(startTimeA) - getComparableTime(startTimeB);
+        });
+
+        let tableHTML = `<table class="timetable-grid-table"><thead><tr><th>Time</th>`;
+
+        dayOrder.forEach(day => {
+            tableHTML += `<th>${day}</th>`;
+        });
+        tableHTML += `</tr></thead><tbody>`;
+
+        sortedTimeSlots.forEach(slot => {
+            tableHTML += `<tr><td><b>${slot.replace('-', ' - ')}</b></td>`;
+            dayOrder.forEach(day => {
+                const subjectCode = gridData[slot]?.[day] || '';
+                tableHTML += `<td>${subjectCode}</td>`;
+            });
+            tableHTML += `</tr>`;
+        });
+
+        tableHTML += `</tbody></table>`;
+        container.innerHTML = tableHTML;
+        timetableDataLoaded = true;
+
+    } catch (error) {
+        console.error("Error fetching timetable data:", error);
+        container.innerHTML = "<p style='text-align:center; color:red;'>Failed to load timetable.</p>";
+    }
+}
+
+
+// ====================================================
+// ================ END OF NEW FUNCTION ===============
+// ====================================================
 
 
 // --- Main Event Listener ---
@@ -309,6 +396,11 @@ window.showSection = function(sectionName) {
     if (sectionName === 'students' && !studentsDataLoaded) {
         loadAndDisplayStudents();
     }
+    // --- UPDATED THIS BLOCK ---
+    if (sectionName === 'timetables' && !timetableDataLoaded) {
+        loadAndDisplayTimetable();
+    }
+    // --- END OF UPDATED BLOCK ---
     
     // Close the sidebar on mobile after selection
     const sidebar = document.getElementById('sidebar');
